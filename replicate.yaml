@@ -1,1 +1,32 @@
+name: grounded-sam-remodel
+description: "Grounded-SAM wrapper for remodeling: detect and segment floors, cabinets, or countertops"
+runtime: "python"
+version: "0.1.0"
 
+input:
+  input_image:
+    type: path
+    description: "Input image of the room (kitchen, bath, etc.)"
+  text_prompt:
+    type: string
+    description: "Surface to detect (e.g. 'floor', 'cabinet', 'countertop')"
+  use_sam_hq:
+    type: boolean
+    default: false
+    description: "Use high-quality SAM for segmentation"
+
+output:
+  type: object
+  properties:
+    masked_img:
+      type: path
+      description: "Binary mask of detected surface"
+    rounding_box_img:
+      type: path
+      description: "Image with bounding boxes and mask overlay"
+    json_data:
+      type: object
+      description: "Detected tags and box metadata"
+    tags:
+      type: string
+      description: "Surface label returned"
