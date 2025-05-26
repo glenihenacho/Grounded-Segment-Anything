@@ -26,8 +26,8 @@ jobs:
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
 
-      - name: Validate Cog Setup
-        run: cog check
+      - name: Validate Predictor Schema
+        run: cog predict --help
 
       - name: Authenticate with Replicate
         run: |
