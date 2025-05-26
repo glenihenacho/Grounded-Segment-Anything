@@ -1,25 +1,31 @@
 FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
 
+# Set environment variables for CUDA + PyTorch compatibility
 ENV DEBIAN_FRONTEND=noninteractive
-ENV CUDA_HOME /usr/local/cuda-11.6/
+ENV AM_I_DOCKER=true
+ENV BUILD_WITH_CUDA=true
+ENV CUDA_HOME=/usr/local/cuda-11.6/
 
-# Set working directory
+# Create working directory
 WORKDIR /home/appuser/Grounded-Segment-Anything
 COPY . .
 
-# Install system dependencies
+# Install OS dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget ffmpeg libsm6 libxext6 git nano vim \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-RUN pip install --no-cache-dir wheel
+# Confirm directory structure
+RUN echo "📁 Verifying build context:" && ls -la && ls -la GroundingDINO
 
-# Install local editable packages
+# Python essentials
+RUN pip install --no-cache-dir wheel setuptools
+
+# Install local editable libraries
 RUN pip install --no-cache-dir --no-build-isolation -e ./GroundingDINO
 RUN pip install --no-cache-dir --no-build-isolation -e ./segment_anything
 
-# Install additional libraries
+# Install remaining libraries
 RUN pip install --no-cache-dir \
     diffusers[torch]==0.15.1 \
     opencv-python==4.7.0.72 \
@@ -30,10 +36,10 @@ RUN pip install --no-cache-dir \
     ipykernel==6.16.2 \
     scipy gradio openai
 
-# Download model weights
+# Download model weights (SAM and GroundingDINO)
 RUN mkdir -p /weights
 RUN wget -O /weights/sam_vit_h.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 RUN wget -O /weights/groundingdino_swinb.pth https://huggingface.co/IDEA-Research/GroundingDINO/resolve/main/groundingdino_swinb.pth
 
-# Final confirmation message
-RUN python -c "import torch; print('✅ Torch Ready:', torch.cuda.is_available())"
+# Optional: verify imports before shipping the image
+RUN python -c "print('🔥 Import test...'); import torch, groundingdino; print('✅ Torch:', torch.__version__, '| groundingdino loaded')"
