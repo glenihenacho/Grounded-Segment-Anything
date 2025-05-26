@@ -1,30 +1,22 @@
-name: Push to Replicate
+- name: Set up Python
+  uses: actions/setup-python@v4
+  with:
+    python-version: "3.10"
 
-on:
-  workflow_dispatch:
+- name: Install Cog
+  run: |
+    curl -L https://github.com/replicate/cog/releases/latest/download/cog_Linux_x86_64 -o cog
+    chmod +x cog
+    sudo mv cog /usr/local/bin/cog
 
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+- name: Install Dependencies
+  run: pip install -r requirements.txt || true
 
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+- name: Validate Cog Setup
+  run: cog check
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+- name: Authenticate with Replicate
+  run: echo "${{ secrets.REPLICATE_TOKEN }}" | cog login --token-stdin
 
-      - name: Install Cog
-        run: |
-          curl -L https://github.com/replicate/cog/releases/latest/download/cog_Linux_x86_64 -o cog
-          chmod +x cog
-          sudo mv cog /usr/local/bin/cog
-
-      - name: Authenticate with Replicate
-        run: |
-          echo "${{ secrets.REPLICATE_TOKEN }}" | cog login --token-stdin
-
-      - name: Push model to Replicate
-        run: cog push r8.im/glenihenacho/pro-grounded-sam
+- name: Push model to Replicate
+  run: cog push r8.im/glenihenacho/pro-grounded-sam
